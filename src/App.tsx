@@ -21,6 +21,11 @@ import {
   Filter,
 } from "lucide-react";
 
+// React Icons examples (uncomment to use):
+// import { FaHome, FaUser, FaCog } from 'react-icons/fa';
+// import { MdEmail, MdPhone } from 'react-icons/md';
+// import { IoMdSettings } from 'react-icons/io';
+
 interface Product {
   id: string;
   name: string;
@@ -1221,7 +1226,7 @@ export default function GuluInventoryApp() {
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">C</span>
+                <span className="text-white font-semibold text-sm">G</span>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-900">Install Gulu Inventory</h3>
@@ -1232,20 +1237,15 @@ export default function GuluInventoryApp() {
               onClick={() => setShowInstallPrompt(false)}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-4 h-4" />
             </button>
           </div>
           
           <div className="flex gap-2">
             <button
               onClick={() => setShowInstallPrompt(false)}
-              className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
               Install
             </button>
             <button
@@ -1264,13 +1264,13 @@ export default function GuluInventoryApp() {
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
               <span className="text-white font-semibold">
-                C
+                G
               </span>
             </div>
           </div>
           <button
             onClick={() => setShowNewListForm(true)}
-            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-full transition-colors"
+            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg transition-colors"
           >
             New List
           </button>
@@ -1280,18 +1280,18 @@ export default function GuluInventoryApp() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Import and Sort Controls */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowImportModal(true)}
-              className="flex items-center gap-2 border border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors"
+              className="flex items-center gap-2 border border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
             >
               <Download className="w-4 h-4" />
               Import from Code
             </button>
             <button
               onClick={() => setShowCsvImportModal(true)}
-              className="flex items-center gap-2 border border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors"
+              className="flex items-center gap-2 border border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
             >
               <Upload className="w-4 h-4" />
               Import from CSV
@@ -1299,11 +1299,11 @@ export default function GuluInventoryApp() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-gray-600">Sort</span>
+              <span className="text-gray-600 text-sm">Sort</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as "name" | "date" | "quantity")}
-                className="border-none shadow-none p-0 bg-transparent focus:outline-none"
+                className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               >
                 <option value="date">Date</option>
                 <option value="name">Name</option>
@@ -1337,13 +1337,13 @@ export default function GuluInventoryApp() {
               placeholder="Search lists..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
         </div>
 
         {/* Lists */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filteredLists.map((list) => {
             const completedCount = list.products.filter(
               (p) => p.isCompleted,
@@ -1357,56 +1357,56 @@ export default function GuluInventoryApp() {
             return (
               <div
                 key={list.id}
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer relative"
+                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-200 cursor-pointer"
                 onClick={() => setSelectedListId(list.id)}
               >
-                {/* Action buttons in top right */}
-                <div className="absolute top-4 right-4 flex items-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      shareList(list);
-                    }}
-                    className="p-2 text-gray-400 hover:text-teal-600 hover:bg-gray-100 rounded-full transition-colors"
-                    title="Share list"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteList(list.id);
-                    }}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors"
-                    title="Delete list"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between mb-4 pr-20">
-                  <div>
-                    <h3 className="text-xl text-gray-900 mb-1">
+                {/* Main content */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
                       {list.name}
                     </h3>
                     <p className="text-sm text-gray-500 mb-2">
                       {list.description}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {list.products.filter(p => !p.isOutOfStock).length} out of {totalCount} in stock
+                    <p className="text-sm text-gray-600">
+                      {completedCount} out of {totalCount} in stock
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">
-                      {list.createdAt.toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )}
+                  
+                  {/* Right side - Date and Actions */}
+                  <div className="flex items-start gap-3">
+                    <p className="text-sm text-gray-500 pt-1">
+                      {list.createdAt.toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </p>
+                    
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          shareList(list);
+                        }}
+                        className="p-1 text-gray-400 hover:text-teal-600 hover:bg-gray-100 rounded transition-colors"
+                        title="Share list"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteList(list.id);
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded transition-colors"
+                        title="Delete list"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

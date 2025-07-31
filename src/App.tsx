@@ -208,6 +208,7 @@ export default function GuluInventoryApp() {
   const [_isOffline, setIsOffline] = useState(false);
   const [showOfflineNotice, setShowOfflineNotice] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     localStorage.setItem("gulu-lists", JSON.stringify(lists));
@@ -238,18 +239,54 @@ export default function GuluInventoryApp() {
       // Listen for PWA install prompt
       const handleBeforeInstallPrompt = (e: Event) => {
         e.preventDefault();
+        setDeferredPrompt(e);
         setShowInstallPrompt(true);
       };
       
+      // Listen for app installed event
+      const handleAppInstalled = () => {
+        setShowInstallPrompt(false);
+        setDeferredPrompt(null);
+      };
+      
       window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.addEventListener('appinstalled', handleAppInstalled);
 
       return () => {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.removeEventListener('appinstalled', handleAppInstalled);
       };
     }
   }, []);
+
+  // PWA Install Functions
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    } catch (error) {
+      console.error('Error during installation:', error);
+      setShowInstallPrompt(false);
+    }
+  };
+
+  const handleDismissInstall = () => {
+    setShowInstallPrompt(false);
+    setDeferredPrompt(null);
+  };
 
   const selectedList =
     lists.find((list) => list.id === selectedListId) || null;
@@ -1011,12 +1048,12 @@ export default function GuluInventoryApp() {
           )}
         </div>
 
-        {/* Add Product Modal */}
+        {/* Add Product Modal - Updated */}
         {showAddProductModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 mx-4">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-semibold text-gray-900">
                   Add New Product
                 </h2>
                 <button
@@ -1029,12 +1066,12 @@ export default function GuluInventoryApp() {
                   }}
                   className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Product Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                   <input
                     type="text"
                     value={newProductName}
@@ -1045,11 +1082,11 @@ export default function GuluInventoryApp() {
                       e.key === "Enter" && addProduct()
                     }
                     placeholder="Enter product name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Category (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category (optional)</label>
                   <input
                     type="text"
                     value={newProductCategory}
@@ -1057,11 +1094,11 @@ export default function GuluInventoryApp() {
                       setNewProductCategory(e.target.value)
                     }
                     placeholder="Enter category"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Image URL (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
                   <input
                     type="text"
                     value={newProductImage}
@@ -1069,11 +1106,11 @@ export default function GuluInventoryApp() {
                       setNewProductImage(e.target.value)
                     }
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Comment (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
                   <textarea
                     value={newProductComment}
                     onChange={(e) =>
@@ -1081,13 +1118,13 @@ export default function GuluInventoryApp() {
                     }
                     placeholder="Add a comment..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm resize-none"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-2">
                   <button
                     onClick={addProduct}
-                    className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+                    className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium text-sm"
                     disabled={!newProductName.trim()}
                   >
                     Add Product
@@ -1100,7 +1137,7 @@ export default function GuluInventoryApp() {
                       setNewProductComment("");
                       setNewProductCategory("");
                     }}
-                    className="px-4 py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
                   >
                     Cancel
                   </button>
@@ -1234,7 +1271,7 @@ export default function GuluInventoryApp() {
               </div>
             </div>
             <button
-              onClick={() => setShowInstallPrompt(false)}
+              onClick={handleDismissInstall}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-4 h-4" />
@@ -1243,13 +1280,13 @@ export default function GuluInventoryApp() {
           
           <div className="flex gap-2">
             <button
-              onClick={() => setShowInstallPrompt(false)}
+              onClick={handleInstallApp}
               className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Install
             </button>
             <button
-              onClick={() => setShowInstallPrompt(false)}
+              onClick={handleDismissInstall}
               className="flex-1 border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Not now

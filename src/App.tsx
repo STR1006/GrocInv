@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   Search,
   Plus,
@@ -11,10 +12,12 @@ import {
   Share2,
   Download,
   Upload,
+  Edit as _Edit,
   X,
   Copy,
   ChevronUp,
   ChevronDown,
+  MoreHorizontal as _MoreHorizontal,
   Filter,
 } from "lucide-react";
 

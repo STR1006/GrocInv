@@ -1,24 +1,21 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
-  Search,
-  Plus,
-  Trash2,
   ArrowLeft,
   Check,
-  Minus,
-  ShoppingCart,
-  RefreshCw,
-  Share2,
-  Download,
-  Upload,
-  Edit as _Edit,
-  X,
-  Copy,
-  ChevronUp,
   ChevronDown,
-  MoreHorizontal as _MoreHorizontal,
-  Filter,
+  ChevronUp,
+  Copy,
+  Download,
+  Minus,
+  Plus,
+  RotateCcw,
+  Search,
+  Share2,
+  ShoppingCart,
+  Trash2,
+  Upload,
+  X,
 } from "lucide-react";
 
 // React Icons examples (uncomment to use):
@@ -43,7 +40,9 @@ interface RestockList {
   name: string;
   description: string;
   createdAt: Date;
+  lastViewedAt?: Date;
   products: Product[];
+  source?: string; // "Manual Entry" or "Imported from Code" or "Imported from CSV"
 }
 
 export default function GuluInventoryApp() {
@@ -53,42 +52,50 @@ export default function GuluInventoryApp() {
       ? JSON.parse(saved).map((l: any) => ({
           ...l,
           createdAt: new Date(l.createdAt),
+          lastViewedAt: l.lastViewedAt ? new Date(l.lastViewedAt) : undefined,
           products: l.products.map((p: any) => ({
             ...p,
-            completedAt: p.completedAt
-              ? new Date(p.completedAt)
-              : undefined,
+            completedAt: p.completedAt ? new Date(p.completedAt) : undefined,
           })),
         }))
       : [
           {
             id: "1",
+            name: "Toast",
+            description: "Basic toast items",
+            createdAt: new Date("2025-07-30"),
+            source: "Manual Entry",
+            products: [],
+          },
+          {
+            id: "2",
             name: "Sparkling Water",
             description: "Imported from Shopify on 10/26/23",
-            createdAt: new Date("2025-07-24"),
+            createdAt: new Date("2025-07-23"),
+            source: "Imported from Shopify",
             products: [
               {
-                id: "1",
+                id: "2-1",
                 name: "Blackberry Tange...",
-                quantity: 0,
-                isCompleted: false,
+                quantity: 4,
+                isCompleted: true,
                 isOutOfStock: false,
                 category: "Beverages",
                 imageUrl:
                   "https://images.unsplash.com/photo-1581635439309-ab4edce0c040?w=300&h=300&fit=crop",
               },
               {
-                id: "2",
+                id: "2-2",
                 name: "Blueberry Nectar...",
-                quantity: 0,
-                isCompleted: false,
+                quantity: 4,
+                isCompleted: true,
                 isOutOfStock: false,
                 category: "Beverages",
                 imageUrl:
                   "https://images.unsplash.com/photo-1560458675-fc20e3b8a1e2?w=300&h=300&fit=crop",
               },
               {
-                id: "3",
+                id: "2-3",
                 name: "Cherry Lime",
                 quantity: 0,
                 isCompleted: false,
@@ -98,7 +105,7 @@ export default function GuluInventoryApp() {
                   "https://images.unsplash.com/photo-1560458675-fc20e3b8a1e2?w=300&h=300&fit=crop",
               },
               {
-                id: "4",
+                id: "2-4",
                 name: "Pomegranate",
                 quantity: 0,
                 isCompleted: false,
@@ -110,79 +117,73 @@ export default function GuluInventoryApp() {
             ],
           },
           {
-            id: "2",
+            id: "3",
             name: "Organic Snacks",
             description: "Manual Entry",
-            createdAt: new Date("2025-07-23"),
-            products: Array.from({ length: 15 }, (_, i) => ({
-              id: `2-${i}`,
-              name: `Product ${i + 1}`,
-              quantity: 0,
-              isCompleted: i < 8,
-              isOutOfStock: false,
-              category: i < 5 ? "Snacks" : i < 10 ? "Organic" : "Health Food",
-            })),
-          },
-          {
-            id: "3",
-            name: "Cleaning Supplies",
-            description: "Imported from Code",
             createdAt: new Date("2025-07-22"),
-            products: Array.from({ length: 31 }, (_, i) => ({
+            source: "Manual Entry",
+            products: Array.from({ length: 15 }, (_, i) => ({
               id: `3-${i}`,
               name: `Product ${i + 1}`,
               quantity: 0,
-              isCompleted: i < 31,
+              isCompleted: i < 15,
               isOutOfStock: false,
-              category: i < 10 ? "Cleaning" : i < 20 ? "Household" : "Maintenance",
+              category: i < 5 ? "Snacks" : i < 10 ? "Organic" : "Health Food",
             })),
           },
           {
             id: "4",
             name: "Dairy Products",
             description: "Manual Entry",
-            createdAt: new Date("2025-07-21"),
+            createdAt: new Date("2025-07-20"),
+            source: "Manual Entry",
             products: Array.from({ length: 8 }, (_, i) => ({
               id: `4-${i}`,
               name: `Product ${i + 1}`,
               quantity: 0,
-              isCompleted: i < 2,
+              isCompleted: i < 8,
               isOutOfStock: false,
               category: i < 4 ? "Dairy" : "Refrigerated",
+            })),
+          },
+          {
+            id: "5",
+            name: "Cleaning Supplies",
+            description: "Imported from Code",
+            createdAt: new Date("2025-07-21"),
+            source: "Imported from Code",
+            products: Array.from({ length: 31 }, (_, i) => ({
+              id: `5-${i}`,
+              name: `Product ${i + 1}`,
+              quantity: 0,
+              isCompleted: i < 31,
+              isOutOfStock: false,
+              category:
+                i < 10 ? "Cleaning" : i < 20 ? "Household" : "Maintenance",
             })),
           },
         ];
   });
 
-  const [selectedListId, setSelectedListId] = useState<
-    string | null
-  >(null);
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchProductName, setSearchProductName] =
-    useState("");
+  const [searchProductName, setSearchProductName] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<
-    "name" | "date" | "quantity"
-  >("date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
-    "desc",
-  );
+  const [sortBy, setSortBy] = useState<"name" | "date" | "quantity">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [productSortBy, setProductSortBy] = useState<
     "name" | "quantity" | "completion" | "stock" | "category"
   >("name");
-  const [productSortOrder, setProductSortOrder] = useState<
-    "asc" | "desc"
-  >("asc");
+  const [productSortOrder, setProductSortOrder] = useState<"asc" | "desc">(
+    "asc"
+  );
   const [showNewListForm, setShowNewListForm] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [showCsvImportModal, setShowCsvImportModal] =
-    useState(false);
+  const [showCsvImportModal, setShowCsvImportModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showAddProductModal, setShowAddProductModal] =
-    useState(false);
-  const [editingProduct, setEditingProduct] =
-    useState<Product | null>(null);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [shareCode, setShareCode] = useState("");
   const [importCode, setImportCode] = useState("");
   const [csvContent, setCsvContent] = useState("");
@@ -190,12 +191,10 @@ export default function GuluInventoryApp() {
   const [importError, setImportError] = useState("");
   const [copied, setCopied] = useState(false);
   const [newListName, setNewListName] = useState("");
-  const [newListDescription, setNewListDescription] =
-    useState("");
+  const [newListDescription, setNewListDescription] = useState("");
   const [newProductName, setNewProductName] = useState("");
   const [newProductImage, setNewProductImage] = useState("");
-  const [newProductComment, setNewProductComment] =
-    useState("");
+  const [newProductComment, setNewProductComment] = useState("");
   const [newProductCategory, setNewProductCategory] = useState("");
   const [editForm, setEditForm] = useState({
     name: "",
@@ -221,42 +220,45 @@ export default function GuluInventoryApp() {
       setIsOffline(false);
       setShowOfflineNotice(false);
     };
-    
+
     const handleOffline = () => {
       setIsOffline(true);
       setShowOfflineNotice(true);
       setTimeout(() => setShowOfflineNotice(false), 3000);
     };
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Check initial online status
       setIsOffline(!navigator.onLine);
-      
+
       // Add connectivity listeners
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
-      
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+
       // Listen for PWA install prompt
       const handleBeforeInstallPrompt = (e: Event) => {
         e.preventDefault();
         setDeferredPrompt(e);
         setShowInstallPrompt(true);
       };
-      
+
       // Listen for app installed event
       const handleAppInstalled = () => {
         setShowInstallPrompt(false);
         setDeferredPrompt(null);
       };
-      
-      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.addEventListener('appinstalled', handleAppInstalled);
+
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.addEventListener("appinstalled", handleAppInstalled);
 
       return () => {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
-        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        window.removeEventListener('appinstalled', handleAppInstalled);
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+        window.removeEventListener(
+          "beforeinstallprompt",
+          handleBeforeInstallPrompt
+        );
+        window.removeEventListener("appinstalled", handleAppInstalled);
       };
     }
   }, []);
@@ -264,21 +266,21 @@ export default function GuluInventoryApp() {
   // PWA Install Functions
   const handleInstallApp = async () => {
     if (!deferredPrompt) return;
-    
+
     try {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
+
+      if (outcome === "accepted") {
+        console.log("User accepted the install prompt");
       } else {
-        console.log('User dismissed the install prompt');
+        console.log("User dismissed the install prompt");
       }
-      
+
       setDeferredPrompt(null);
       setShowInstallPrompt(false);
     } catch (error) {
-      console.error('Error during installation:', error);
+      console.error("Error during installation:", error);
       setShowInstallPrompt(false);
     }
   };
@@ -288,14 +290,13 @@ export default function GuluInventoryApp() {
     setDeferredPrompt(null);
   };
 
-  const selectedList =
-    lists.find((list) => list.id === selectedListId) || null;
+  const selectedList = lists.find((list) => list.id === selectedListId) || null;
 
   // Get all unique categories from current list
   const availableCategories = useMemo(() => {
     if (!selectedList) return [];
     const categories = selectedList.products
-      .map(p => p.category)
+      .map((p) => p.category)
       .filter((cat): cat is string => !!cat)
       .filter((cat, index, arr) => arr.indexOf(cat) === index)
       .sort();
@@ -306,27 +307,17 @@ export default function GuluInventoryApp() {
     return lists
       .filter(
         (list) =>
-          list.name
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          list.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()),
+          list.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          list.description.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .sort((a, b) => {
         // Calculate completion status for each list
-        const aCompletedCount = a.products.filter(
-          (p) => p.isCompleted,
-        ).length;
+        const aCompletedCount = a.products.filter((p) => p.isCompleted).length;
         const aIsFullyCompleted =
-          a.products.length > 0 &&
-          aCompletedCount === a.products.length;
-        const bCompletedCount = b.products.filter(
-          (p) => p.isCompleted,
-        ).length;
+          a.products.length > 0 && aCompletedCount === a.products.length;
+        const bCompletedCount = b.products.filter((p) => p.isCompleted).length;
         const bIsFullyCompleted =
-          b.products.length > 0 &&
-          bCompletedCount === b.products.length;
+          b.products.length > 0 && bCompletedCount === b.products.length;
 
         // Always sort fully completed lists to the bottom
         if (aIsFullyCompleted !== bIsFullyCompleted) {
@@ -367,9 +358,7 @@ export default function GuluInventoryApp() {
     return encoded;
   };
 
-  const decodeShareCode = (
-    code: string,
-  ): RestockList | null => {
+  const decodeShareCode = (code: string): RestockList | null => {
     try {
       const decoded = JSON.parse(atob(code));
       return {
@@ -377,18 +366,17 @@ export default function GuluInventoryApp() {
         name: decoded.n || "Imported List",
         description: decoded.d || "",
         createdAt: new Date(),
-        products: (decoded.p || []).map(
-          (p: any, index: number) => ({
-            id: `${Date.now()}-${index}`,
-            name: p.n || "Unnamed Product",
-            quantity: p.q || 0,
-            isCompleted: false,
-            isOutOfStock: false,
-            imageUrl: p.i || "",
-            comment: p.c || "",
-            category: p.cat || "",
-          }),
-        ),
+        source: "Imported from Code",
+        products: (decoded.p || []).map((p: any, index: number) => ({
+          id: `${Date.now()}-${index}`,
+          name: p.n || "Unnamed Product",
+          quantity: p.q || 0,
+          isCompleted: false,
+          isOutOfStock: false,
+          imageUrl: p.i || "",
+          comment: p.c || "",
+          category: p.cat || "",
+        })),
       };
     } catch (error) {
       return null;
@@ -404,15 +392,11 @@ export default function GuluInventoryApp() {
       if (lines.length === 0) {
         throw new Error("CSV content is empty");
       }
-      const listName =
-        lines[0].split(",")[0].trim() || "Imported List";
+      const listName = lines[0].split(",")[0].trim() || "Imported List";
       const products: Product[] = [];
       for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i]
-          .split(",")
-          .map((part) => part.trim());
-        const productName =
-          parts[0] || `Product ${products.length + 1}`;
+        const parts = lines[i].split(",").map((part) => part.trim());
+        const productName = parts[0] || `Product ${products.length + 1}`;
         const category = parts[1] || "";
         const imageUrl = parts[2] || "";
         const comment = parts[3] || "";
@@ -432,28 +416,25 @@ export default function GuluInventoryApp() {
         name: listName,
         description: `Imported from CSV on ${new Date().toLocaleDateString()}`,
         createdAt: new Date(),
+        source: "Imported from CSV",
         products,
       };
     } catch (error) {
       setImportError(
-        error instanceof Error
-          ? error.message
-          : "Invalid CSV format",
+        error instanceof Error ? error.message : "Invalid CSV format"
       );
       return null;
     }
   };
 
-  const handleCsvFileUpload = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleCsvFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.name.endsWith(".csv")) {
       setImportError("Please select a CSV file");
       return;
     }
-    
+
     setImportError(""); // Clear any previous errors
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -495,6 +476,7 @@ export default function GuluInventoryApp() {
         description: newListDescription,
         createdAt: new Date(),
         products: [],
+        source: "Manual Entry",
       };
       setLists([...lists, newList]);
       setNewListName("");
@@ -523,13 +505,13 @@ export default function GuluInventoryApp() {
       setSelectedListId(importedList.id);
     } else {
       setImportError(
-        "Invalid share code. Please check the code and try again.",
+        "Invalid share code. Please check the code and try again."
       );
     }
   };
 
   const copyToClipboard = (text: string) => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -551,9 +533,7 @@ export default function GuluInventoryApp() {
       })),
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
   };
 
@@ -562,42 +542,33 @@ export default function GuluInventoryApp() {
     const updatedList = {
       ...selectedList,
       products: selectedList.products.map((p) =>
-        p.id === productId ? { ...p, quantity: 0 } : p,
+        p.id === productId ? { ...p, quantity: 0 } : p
       ),
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
   };
 
-  const updateProductQuantity = (
-    productId: string,
-    change: number,
-  ) => {
+  const updateProductQuantity = (productId: string, change: number) => {
     if (!selectedList) return;
     const updatedList = {
       ...selectedList,
       products: selectedList.products.map((p) =>
         p.id === productId
           ? { ...p, quantity: Math.max(0, p.quantity + change) }
-          : p,
+          : p
       ),
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
   };
 
   const toggleProductCompletion = (productId: string) => {
     if (!selectedList) return;
 
-    const product = selectedList.products.find(
-      (p) => p.id === productId,
-    );
+    const product = selectedList.products.find((p) => p.id === productId);
     if (!product) return;
 
     const isNowCompleted = !product.isCompleted;
@@ -608,17 +579,13 @@ export default function GuluInventoryApp() {
           ? {
               ...p,
               isCompleted: isNowCompleted,
-              completedAt: isNowCompleted
-                ? new Date()
-                : undefined,
+              completedAt: isNowCompleted ? new Date() : undefined,
             }
-          : p,
+          : p
       ),
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
   };
 
@@ -627,15 +594,11 @@ export default function GuluInventoryApp() {
     const updatedList = {
       ...selectedList,
       products: selectedList.products.map((p) =>
-        p.id === productId
-          ? { ...p, isOutOfStock: !p.isOutOfStock }
-          : p,
+        p.id === productId ? { ...p, isOutOfStock: !p.isOutOfStock } : p
       ),
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
   };
 
@@ -656,9 +619,7 @@ export default function GuluInventoryApp() {
       products: [...selectedList.products, newProduct],
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
     setNewProductName("");
     setNewProductImage("");
@@ -679,12 +640,7 @@ export default function GuluInventoryApp() {
   };
 
   const saveProductEdit = () => {
-    if (
-      !editingProduct ||
-      !selectedList ||
-      !editForm.name.trim()
-    )
-      return;
+    if (!editingProduct || !selectedList || !editForm.name.trim()) return;
     const updatedList = {
       ...selectedList,
       products: selectedList.products.map((p) =>
@@ -696,13 +652,11 @@ export default function GuluInventoryApp() {
               comment: editForm.comment || undefined,
               category: editForm.category || undefined,
             }
-          : p,
+          : p
       ),
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
     setShowEditModal(false);
     setEditingProduct(null);
@@ -712,14 +666,10 @@ export default function GuluInventoryApp() {
     if (!editingProduct || !selectedList) return;
     const updatedList = {
       ...selectedList,
-      products: selectedList.products.filter(
-        (p) => p.id !== editingProduct.id,
-      ),
+      products: selectedList.products.filter((p) => p.id !== editingProduct.id),
     };
     setLists(
-      lists.map((list) =>
-        list.id === selectedList.id ? updatedList : list,
-      ),
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
     setShowEditModal(false);
     setEditingProduct(null);
@@ -731,7 +681,8 @@ export default function GuluInventoryApp() {
         const matchesSearch = p.name
           .toLowerCase()
           .includes(searchProductName.toLowerCase());
-        const matchesCategory = !categoryFilter || p.category === categoryFilter;
+        const matchesCategory =
+          !categoryFilter || p.category === categoryFilter;
         return matchesSearch && matchesCategory;
       })
       .sort((a, b) => {
@@ -742,10 +693,7 @@ export default function GuluInventoryApp() {
 
         // Second, within in-stock items, always sort completed items to the bottom
         // (unless specifically sorting by completion status)
-        if (
-          productSortBy !== "completion" &&
-          a.isCompleted !== b.isCompleted
-        ) {
+        if (productSortBy !== "completion" && a.isCompleted !== b.isCompleted) {
           return a.isCompleted ? 1 : -1;
         }
 
@@ -762,11 +710,7 @@ export default function GuluInventoryApp() {
           case "completion":
             // For completion sort, allow user to control the order
             comparison =
-              a.isCompleted === b.isCompleted
-                ? 0
-                : a.isCompleted
-                  ? 1
-                  : -1;
+              a.isCompleted === b.isCompleted ? 0 : a.isCompleted ? 1 : -1;
             break;
           case "stock":
             // Since we already handled stock status above, sort by name as secondary
@@ -793,46 +737,57 @@ export default function GuluInventoryApp() {
       });
 
     const completedCount = selectedList.products.filter(
-      (p) => p.isCompleted,
+      (p) => p.isCompleted
     ).length;
     const totalCount = selectedList.products.length;
 
     return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-4xl mx-auto p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={() => setSelectedListId(null)}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Lists</span>
-            </button>
-            <button
-              onClick={resetAllProducts}
-              className="bg-red-500 hover:bg-red-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Reset All
-            </button>
-          </div>
+      <div
+        className="app-container min-h-screen"
+        style={{ backgroundColor: "#f3f4f6" }}
+      >
+        {/* Background should be light gray */}
 
+        {/* Header */}
+        <header className="app-header bg-white border-b border-gray-200">
+          <div className="app-header-content max-w-4xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between w-full">
+              <button
+                onClick={() => setSelectedListId(null)}
+                className="app-header-btn"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Lists</span>
+              </button>
+              <button
+                onClick={resetAllProducts}
+                className="app-header-btn danger"
+              >
+                Reset All
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="app-main max-w-4xl mx-auto px-6 py-8">
           {/* Title Section */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-              {selectedList.name}
-            </h1>
-            <p className="text-gray-600 mb-2">
-              {selectedList.description}
-            </p>
-            <div className="flex items-center justify-between">
-              <p className="text-gray-500">
-                {completedCount} of {totalCount} items completed
-              </p>
+          <div className="mb-6 w-full">
+            <div className="flex items-center justify-between mb-4 w-full">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+                  {selectedList.name}
+                </h1>
+                <p className="text-gray-600 text-sm mb-1">
+                  {selectedList.description}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  {completedCount} of {totalCount} items completed
+                </p>
+              </div>
               <button
                 onClick={() => setShowAddProductModal(true)}
-                className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-6 py-2 flex items-center gap-2 transition-colors"
+                className="app-header-btn flex-shrink-0 ml-4"
               >
                 <Plus className="w-4 h-4" />
                 Add Product
@@ -840,79 +795,58 @@ export default function GuluInventoryApp() {
             </div>
           </div>
 
-          {/* Search and Filter Controls */}
-          <div className="mb-6 space-y-4">
-            {/* Search */}
-            <div className="relative">
+          {/* Search Bar - Full Width */}
+          <div className="mb-8 w-full">
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
+                id="searchProducts"
+                name="searchProducts"
                 placeholder="Search products..."
                 value={searchProductName}
-                onChange={(e) =>
-                  setSearchProductName(e.target.value)
-                }
-                className="w-full pl-10 pr-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                onChange={(e) => setSearchProductName(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200"
               />
             </div>
+          </div>
 
-            {/* Category Filter */}
-            {availableCategories.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
+          {/* Sort and Filter Controls */}
+          <div className="mb-6 w-full">
+            <div className="flex items-center justify-end gap-4">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-gray-600 text-sm whitespace-nowrap">
+                  Sort:
+                </span>
                 <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  id="productSortBy"
+                  name="productSortBy"
+                  value={productSortBy}
+                  onChange={(e) =>
+                    setProductSortBy(
+                      e.target.value as
+                        | "name"
+                        | "quantity"
+                        | "completion"
+                        | "stock"
+                        | "category"
+                    )
+                  }
+                  className="bg-gray-50 border-0 rounded-lg px-3 py-2 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200"
                 >
-                  <option value="">All Categories</option>
-                  {availableCategories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
+                  <option value="name">Name</option>
+                  <option value="category">Category</option>
+                  <option value="quantity">Quantity</option>
+                  <option value="completion">Completion</option>
+                  <option value="stock">Stock Status</option>
                 </select>
-                {categoryFilter && (
-                  <button
-                    onClick={() => setCategoryFilter("")}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                    title="Clear filter"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Sort Controls */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-600">Sort</span>
-                  <select
-                    value={productSortBy}
-                    onChange={(e) =>
-                      setProductSortBy(e.target.value as "name" | "quantity" | "completion" | "stock" | "category")
-                    }
-                    className="border-none shadow-none p-0 bg-transparent focus:outline-none"
-                  >
-                    <option value="name">Name</option>
-                    <option value="category">Category</option>
-                    <option value="quantity">Quantity</option>
-                    <option value="completion">Completion</option>
-                    <option value="stock">Stock Status</option>
-                  </select>
-                </div>
                 <button
                   onClick={() =>
                     setProductSortOrder(
-                      productSortOrder === "asc"
-                        ? "desc"
-                        : "asc",
+                      productSortOrder === "asc" ? "desc" : "asc"
                     )
                   }
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  title={`Sort ${productSortOrder === "asc" ? "descending" : "ascending"}`}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   {productSortOrder === "asc" ? (
                     <ChevronUp className="w-4 h-4" />
@@ -921,139 +855,145 @@ export default function GuluInventoryApp() {
                   )}
                 </button>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 flex-shrink-0 whitespace-nowrap">
                 {filteredProducts.length} product
                 {filteredProducts.length !== 1 ? "s" : ""}
-                {categoryFilter && ` in ${categoryFilter}`}
               </div>
             </div>
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-6">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className={`border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${
-                  product.isOutOfStock
-                    ? "bg-red-50"
-                    : "bg-white"
+                className={`app-product-card bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+                  product.isOutOfStock ? "out-of-stock" : ""
                 }`}
                 onClick={() => openEditModal(product)}
               >
-                {/* Product Header */}
-                <div className="p-4 pb-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleOutOfStock(product.id);
-                      }}
-                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                      title={
-                        product.isOutOfStock
-                          ? "Mark as in stock"
-                          : "Mark as out of stock"
-                      }
-                    >
-                      <ShoppingCart
-                        className={`w-4 h-4 ${product.isOutOfStock ? "text-red-500" : "text-gray-400"}`}
-                      />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        resetProductQuantity(product.id);
-                      }}
-                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <h3 className="font-medium text-gray-900 mb-1">
-                    {product.name}
-                  </h3>
-                  {product.category && (
-                    <p className="text-sm text-gray-500 mb-2">
-                      {product.category}
-                    </p>
-                  )}
-                </div>
+                {/* Top Row - Cart left, Product Name center, Refresh right */}
+                <div className="top-icons">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleOutOfStock(product.id);
+                    }}
+                    className={`icon-button ${
+                      product.isOutOfStock ? "out-of-stock-active" : ""
+                    }`}
+                    title={
+                      product.isOutOfStock
+                        ? "Mark as In Stock"
+                        : "Mark as Out of Stock"
+                    }
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                  </button>
 
-                {/* Product Image */}
-                <div className="mx-4 mb-4">
-                  <div className="bg-white rounded-lg h-32 flex items-center justify-center overflow-hidden border border-gray-200">
-                    {product.imageUrl ? (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quantity Controls */}
-                <div className="px-4 pb-4">
-                  <div className="flex items-center justify-center mb-3 gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        updateProductQuantity(product.id, -1);
-                      }}
-                      className="flex-1 h-10 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center justify-center transition-colors touch-manipulation"
-                    >
-                      <Minus className="w-5 h-5 text-gray-600" />
-                    </button>
-                    <span className="px-4 text-lg font-medium text-gray-900 min-w-[3rem] text-center">
-                      {product.quantity}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        updateProductQuantity(product.id, 1);
-                      }}
-                      className="flex-1 h-10 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center justify-center transition-colors touch-manipulation"
-                    >
-                      <Plus className="w-5 h-5 text-gray-600" />
-                    </button>
+                  {/* Product Name - Centered between icons */}
+                  <div className="product-name-inline">
+                    <h3 className="text-base font-semibold text-gray-900">
+                      {product.name}
+                    </h3>
                   </div>
 
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleProductCompletion(product.id);
+                      resetProductQuantity(product.id);
                     }}
-                    className={`w-full rounded-lg py-2 transition-colors border ${
-                      product.isCompleted
-                        ? "bg-green-100 text-green-700 border-green-300 hover:bg-green-200"
-                        : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                    }`}
+                    className="icon-button"
                   >
-                    {product.isCompleted ? "Done" : "Mark Done"}
+                    <RotateCcw className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Product Image - 16:9 ratio */}
+                {product.imageUrl && (
+                  <div className="image-container">
+                    <div className="image-frame">
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Quantity Controls - Centered pill style */}
+                <div className="quantity-controls">
+                  <div className="quantity-pill">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateProductQuantity(product.id, -1);
+                      }}
+                      className="quantity-button"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+
+                    <span className="quantity-display">{product.quantity}</span>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateProductQuantity(product.id, 1);
+                      }}
+                      className="quantity-button"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mark Done Button - Full width */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleProductCompletion(product.id);
+                  }}
+                  className={`mark-done-button ${
+                    product.isCompleted ? "completed" : "pending"
+                  }`}
+                >
+                  Mark Done
+                </button>
               </div>
             ))}
           </div>
 
           {filteredProducts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">
-                No products found.
-              </p>
+              <div
+                className="app-list-card"
+                style={{
+                  backgroundColor: "white",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "0.5rem",
+                  padding: "2rem",
+                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <p className="text-gray-500 text-lg">No products found.</p>
+                <p className="text-gray-400 text-sm mt-2">
+                  Try adjusting your search terms or add a new product.
+                </p>
+              </div>
             </div>
           )}
-        </div>
+        </main>
 
-        {/* Add Product Modal - Updated */}
+        {/* Add Product Modal */}
         {showAddProductModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 mx-4">
+          <div className="modal-overlay">
+            <div className="modal-content">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900">
                   Add New Product
                 </h2>
                 <button
@@ -1064,67 +1004,74 @@ export default function GuluInventoryApp() {
                     setNewProductComment("");
                     setNewProductCategory("");
                   }}
-                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  className="close-button p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  aria-label="Close"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Name
+                  </label>
                   <input
                     type="text"
+                    id="newProductName"
+                    name="newProductName"
                     value={newProductName}
-                    onChange={(e) =>
-                      setNewProductName(e.target.value)
-                    }
-                    onKeyPress={(e) =>
-                      e.key === "Enter" && addProduct()
-                    }
+                    onChange={(e) => setNewProductName(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && addProduct()}
                     placeholder="Enter product name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category (optional)
+                  </label>
                   <input
                     type="text"
+                    id="newProductCategory"
+                    name="newProductCategory"
                     value={newProductCategory}
-                    onChange={(e) =>
-                      setNewProductCategory(e.target.value)
-                    }
+                    onChange={(e) => setNewProductCategory(e.target.value)}
                     placeholder="Enter category"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Image URL (optional)
+                  </label>
                   <input
                     type="text"
+                    id="newProductImage"
+                    name="newProductImage"
                     value={newProductImage}
-                    onChange={(e) =>
-                      setNewProductImage(e.target.value)
-                    }
+                    onChange={(e) => setNewProductImage(e.target.value)}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Comment (optional)
+                  </label>
                   <textarea
+                    id="newProductComment"
+                    name="newProductComment"
                     value={newProductComment}
-                    onChange={(e) =>
-                      setNewProductComment(e.target.value)
-                    }
+                    onChange={(e) => setNewProductComment(e.target.value)}
                     placeholder="Add a comment..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm resize-none"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                   />
                 </div>
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-4">
                   <button
                     onClick={addProduct}
-                    className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium text-sm"
+                    className="primary flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                     disabled={!newProductName.trim()}
                   >
                     Add Product
@@ -1137,7 +1084,7 @@ export default function GuluInventoryApp() {
                       setNewProductComment("");
                       setNewProductCategory("");
                     }}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+                    className="secondary px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   >
                     Cancel
                   </button>
@@ -1149,27 +1096,30 @@ export default function GuluInventoryApp() {
 
         {/* Edit Product Modal */}
         {showEditModal && editingProduct && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">
-                  Edit Product
-                </h2>
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Edit Product</h2>
                 <button
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingProduct(null);
                   }}
-                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  className="close-button p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  aria-label="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Product Name</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Product Name
+                  </label>
                   <input
                     type="text"
+                    id="editProductName"
+                    name="editProductName"
                     value={editForm.name}
                     onChange={(e) =>
                       setEditForm({
@@ -1178,13 +1128,17 @@ export default function GuluInventoryApp() {
                       })
                     }
                     placeholder="Enter product name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Category (optional)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Category (optional)
+                  </label>
                   <input
                     type="text"
+                    id="editProductCategory"
+                    name="editProductCategory"
                     value={editForm.category}
                     onChange={(e) =>
                       setEditForm({
@@ -1193,13 +1147,17 @@ export default function GuluInventoryApp() {
                       })
                     }
                     placeholder="Enter category"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Image URL (optional)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Image URL (optional)
+                  </label>
                   <input
                     type="text"
+                    id="editProductImageUrl"
+                    name="editProductImageUrl"
                     value={editForm.imageUrl}
                     onChange={(e) =>
                       setEditForm({
@@ -1208,12 +1166,16 @@ export default function GuluInventoryApp() {
                       })
                     }
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Comment (optional)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Comment (optional)
+                  </label>
                   <textarea
+                    id="editProductComment"
+                    name="editProductComment"
                     value={editForm.comment}
                     onChange={(e) =>
                       setEditForm({
@@ -1223,19 +1185,19 @@ export default function GuluInventoryApp() {
                     }
                     placeholder="Add a comment..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-4">
                   <button
                     onClick={saveProductEdit}
-                    className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+                    className="primary flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                   >
                     Save Changes
                   </button>
                   <button
                     onClick={deleteProductFromEdit}
-                    className="px-4 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+                    className="danger px-4 py-3 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -1249,7 +1211,11 @@ export default function GuluInventoryApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div
+      className="app-container min-h-screen"
+      style={{ backgroundColor: "#f3f4f6" }}
+    >
+      {/* Background should be light gray */}
       {/* Offline Notice */}
       {showOfflineNotice && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 z-50">
@@ -1266,8 +1232,12 @@ export default function GuluInventoryApp() {
                 <span className="text-white font-semibold text-sm">G</span>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-900">Install Gulu Inventory</h3>
-                <p className="text-xs text-gray-500">Add to your home screen for quick access</p>
+                <h3 className="text-sm font-medium text-gray-900">
+                  Install Gulu Inventory
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Add to your home screen for quick access
+                </p>
               </div>
             </div>
             <button
@@ -1277,7 +1247,7 @@ export default function GuluInventoryApp() {
               <X className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="flex gap-2">
             <button
               onClick={handleInstallApp}
@@ -1296,65 +1266,60 @@ export default function GuluInventoryApp() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold">
-                G
-              </span>
+      <header className="app-header bg-white border-b border-gray-200">
+        <div className="app-header-content max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="app-logo">
+              <span>G</span>
             </div>
+            <button
+              onClick={() => setShowNewListForm(true)}
+              className="app-new-list-btn"
+            >
+              New List
+            </button>
           </div>
-          <button
-            onClick={() => setShowNewListForm(true)}
-            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            New List
-          </button>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Import and Sort Controls */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
+      <main className="app-main max-w-4xl mx-auto px-6 py-8">
+        {/* Action Buttons */}
+        <div className="app-action-buttons flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3 mb-6 w-full">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => setShowImportModal(true)}
-              className="flex items-center gap-2 border border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
+              className="app-import-btn"
             >
               <Download className="w-4 h-4" />
               Import from Code
             </button>
             <button
               onClick={() => setShowCsvImportModal(true)}
-              className="flex items-center gap-2 border border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
+              className="app-import-btn"
             >
               <Upload className="w-4 h-4" />
               Import from CSV
             </button>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600 text-sm">Sort</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as "name" | "date" | "quantity")}
-                className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              >
-                <option value="date">Date</option>
-                <option value="name">Name</option>
-                <option value="quantity">Items</option>
-              </select>
-            </div>
-            <button
-              onClick={() =>
-                setSortOrder(
-                  sortOrder === "asc" ? "desc" : "asc",
-                )
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-gray-600 text-sm font-medium">Sort:</span>
+            <select
+              id="sortBy"
+              name="sortBy"
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as "name" | "date" | "quantity")
               }
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
+              className="text-gray-700 bg-gray-50 border-0 rounded-lg px-3 py-2 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200"
+            >
+              <option value="date">Date</option>
+              <option value="name">Name</option>
+              <option value="quantity">Items</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="p-2 text-gray-500 hover:text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
             >
               {sortOrder === "asc" ? (
                 <ChevronUp className="w-4 h-4" />
@@ -1365,70 +1330,67 @@ export default function GuluInventoryApp() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
+        {/* Search - Full Width */}
+        <div className="mb-12 w-full">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
+              id="searchLists"
+              name="searchLists"
               placeholder="Search lists..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200"
             />
           </div>
         </div>
 
         {/* Lists */}
-        <div className="space-y-6">
+        <div className="app-lists space-y-6">
           {filteredLists.map((list) => {
             const completedCount = list.products.filter(
-              (p) => p.isCompleted,
+              (p) => p.isCompleted
             ).length;
             const totalCount = list.products.length;
             const progressPercentage =
-              totalCount > 0
-                ? (completedCount / totalCount) * 100
-                : 0;
+              totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
             return (
               <div
                 key={list.id}
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                onClick={() => setSelectedListId(list.id)}
+                className="app-list-card bg-white border border-gray-300 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  // Update lastViewedAt when clicking on a list
+                  const updatedLists = lists.map(l => 
+                    l.id === list.id ? { ...l, lastViewedAt: new Date() } : l
+                  );
+                  setLists(updatedLists);
+                  setSelectedListId(list.id);
+                }}
+                style={{
+                  backgroundColor: "white",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "0.5rem",
+                  padding: "1.5rem",
+                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+                }}
               >
-                {/* Main content */}
-                <div className="flex items-start justify-between mb-4">
+                <div className="app-list-header flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">
-                      {list.name}
+                    <h3 className="app-list-title">
+                      {list.name || "Test Title"}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-2">
-                      {list.description}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {completedCount} out of {totalCount} in stock
-                    </p>
                   </div>
-                  
-                  {/* Right side - Date and Actions */}
-                  <div className="flex items-start gap-3">
-                    <p className="text-sm text-gray-500 pt-1">
-                      {list.createdAt.toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                    
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-1">
+
+                  <div className="app-list-actions flex flex-col items-end gap-2">
+                    <div className="app-action-buttons-container flex items-center gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           shareList(list);
                         }}
-                        className="p-1 text-gray-400 hover:text-teal-600 hover:bg-gray-100 rounded transition-colors"
+                        className="app-action-btn p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Share list"
                       >
                         <Share2 className="w-4 h-4" />
@@ -1438,20 +1400,42 @@ export default function GuluInventoryApp() {
                           e.stopPropagation();
                           deleteList(list.id);
                         }}
-                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded transition-colors"
+                        className="app-action-btn p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Delete list"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
+                    <span className="app-list-date text-sm text-gray-500 font-medium">
+                      {list.lastViewedAt 
+                        ? `Last viewed ${list.lastViewedAt.toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })}`
+                        : `Created ${list.createdAt.toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })}`
+                      }
+                    </span>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <p className="app-stock-status text-sm text-gray-600 mb-4">
+                  {completedCount} out of {totalCount} in stock
+                </p>
+
+                <div className="app-progress-bg w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-teal-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${progressPercentage}%` }}
+                    className="app-progress-bar bg-teal-600 h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${progressPercentage}%`,
+                      backgroundColor: "#0f766e",
+                      height: "0.5rem",
+                      borderRadius: "9999px",
+                    }}
                   />
                 </div>
               </div>
@@ -1459,65 +1443,98 @@ export default function GuluInventoryApp() {
           })}
         </div>
 
+        {/* Empty State */}
         {filteredLists.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">
-              No lists found matching your search.
-            </p>
+          <div className="text-center py-16">
+            <div className="bg-white border border-gray-300 rounded-lg p-12">
+              <p className="text-gray-500 text-lg font-medium">
+                No lists found matching your search.
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your search terms or create a new list.
+              </p>
+            </div>
           </div>
         )}
-      </div>
+      </main>
 
       {/* New List Form Dialog */}
       {showNewListForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Create New List</h2>
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowNewListForm(false);
+            }
+          }}
+        >
+          <div className="modal-content">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Create New List
+              </h2>
               <button
                 onClick={() => setShowNewListForm(false)}
-                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                className="close-button p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1" htmlFor="name">List Name</label>
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                  htmlFor="newListName"
+                >
+                  List Name
+                </label>
                 <input
                   type="text"
-                  id="name"
+                  id="newListName"
+                  name="newListName"
                   placeholder="Enter list name..."
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" && newListName.trim()) {
+                      createNewList();
+                    }
+                  }}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                  autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1" htmlFor="description">Description</label>
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                  htmlFor="newListDescription"
+                >
+                  Description (optional)
+                </label>
                 <textarea
-                  id="description"
+                  id="newListDescription"
+                  name="newListDescription"
                   placeholder="Enter description..."
                   value={newListDescription}
-                  onChange={(e) =>
-                    setNewListDescription(e.target.value)
-                  }
+                  onChange={(e) => setNewListDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 resize-none"
                 />
               </div>
             </div>
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowNewListForm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"
+                className="secondary flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={createNewList}
-                className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors"
+                disabled={!newListName.trim()}
+                className="primary flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 Create List
               </button>
@@ -1528,17 +1545,29 @@ export default function GuluInventoryApp() {
 
       {/* Import Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Import List</h2>
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowImportModal(false);
+              setImportCode("");
+              setImportError("");
+            }
+          }}
+        >
+          <div className="modal-content">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Import List
+              </h2>
               <button
                 onClick={() => {
                   setShowImportModal(false);
                   setImportCode("");
                   setImportError("");
                 }}
-                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                className="close-button p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1549,35 +1578,36 @@ export default function GuluInventoryApp() {
             <div className="space-y-4">
               <input
                 type="text"
+                id="importCode"
+                name="importCode"
                 value={importCode}
                 onChange={(e) => {
                   setImportCode(e.target.value);
                   setImportError(""); // Clear error when user types
                 }}
                 placeholder="Paste share code here..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                autoFocus
               />
               {importError && (
-                <p className="text-red-500 text-sm">
-                  {importError}
-                </p>
+                <p className="text-red-500 text-sm">{importError}</p>
               )}
             </div>
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => {
                   setShowImportModal(false);
                   setImportCode("");
                   setImportError("");
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"
+                className="secondary flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={importList}
                 disabled={!importCode.trim()}
-                className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="primary flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 Import List
               </button>
@@ -1588,13 +1618,14 @@ export default function GuluInventoryApp() {
 
       {/* Share Code Modal */}
       {showShareModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">Share List</h2>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                className="close-button p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1606,13 +1637,15 @@ export default function GuluInventoryApp() {
               <div className="relative">
                 <input
                   type="text"
+                  id="shareCode"
+                  name="shareCode"
                   readOnly
                   value={shareCode}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md bg-gray-50"
+                  className="w-full px-3 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(shareCode)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-slate-700 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-slate-700 transition-colors rounded-lg hover:bg-gray-100"
                   title="Copy to clipboard"
                 >
                   {copied ? (
@@ -1626,7 +1659,7 @@ export default function GuluInventoryApp() {
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setShowShareModal(false)}
-                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors"
+                className="primary px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
               >
                 Close
               </button>
@@ -1637,9 +1670,9 @@ export default function GuluInventoryApp() {
 
       {/* CSV Import Modal */}
       {showCsvImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">Import from CSV</h2>
               <button
                 onClick={() => {
@@ -1648,44 +1681,53 @@ export default function GuluInventoryApp() {
                   setCsvFile(null);
                   setImportError("");
                 }}
-                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                className="close-button p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <p className="text-gray-600 mb-4">
-              Select a CSV file to import a list with products and their details.
+              Select a CSV file to import a list with products and their
+              details.
             </p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Select CSV File</label>
+                <label className="block text-sm font-medium mb-2">
+                  Select CSV File
+                </label>
                 <input
                   type="file"
+                  id="csvFile"
+                  name="csvFile"
                   accept=".csv"
                   onChange={handleCsvFileUpload}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+                  className="block w-full text-sm text-gray-500 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
                 />
               </div>
               {csvFile && (
-                <div className="text-sm text-gray-600">
-                  Selected file: {csvFile.name}
+                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                  Selected file:{" "}
+                  <span className="font-medium">{csvFile.name}</span>
                 </div>
               )}
               <div className="text-sm text-gray-500">
-                <p className="mb-2">Expected CSV format:</p>
-                <div className="bg-gray-50 p-3 rounded border font-mono text-xs">
-                  ListName<br/>
-                  Product1,category,image-url,comment<br/>
+                <p className="mb-2 font-medium">Expected CSV format:</p>
+                <div className="bg-gray-50 p-3 rounded-lg border font-mono text-xs">
+                  ListName
+                  <br />
+                  Product1,category,image-url,comment
+                  <br />
                   Product2,category,image-url,comment
                 </div>
               </div>
               {importError && (
-                <p className="text-red-500 text-sm">
+                <p className="text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
                   {importError}
                 </p>
               )}
             </div>
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => {
                   setShowCsvImportModal(false);
@@ -1693,14 +1735,14 @@ export default function GuluInventoryApp() {
                   setCsvFile(null);
                   setImportError("");
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"
+                className="secondary flex-1 px-4 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={importCsv}
                 disabled={!csvFile}
-                className="flex-1 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="primary flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 Import List
               </button>

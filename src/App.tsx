@@ -899,13 +899,6 @@ export default function GuluInventoryApp() {
                   {completedCount} of {totalCount} items completed
                 </p>
               </div>
-              <button
-                onClick={() => setShowAddProductModal(true)}
-                className="app-header-btn flex-shrink-0 ml-4"
-              >
-                <Plus className="w-4 h-4" />
-                Add Product
-              </button>
             </div>
           </div>
 
@@ -1101,6 +1094,15 @@ export default function GuluInventoryApp() {
             </div>
           )}
         </main>
+
+        {/* Floating Action Button */}
+        <button
+          onClick={() => setShowAddProductModal(true)}
+          className="app-fab"
+          title="Add Product"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
 
         {/* Add Product Modal */}
         {showAddProductModal && (

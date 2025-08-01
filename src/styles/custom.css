@@ -928,3 +928,46 @@ textarea,
   color: #6b7280 !important;
   font-weight: 500 !important;
 }
+
+/* Floating Action Button */
+.app-fab {
+  position: fixed !important;
+  bottom: 1.5rem !important;
+  right: 1.5rem !important;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  background-color: #0f766e !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s !important;
+  z-index: 1000 !important;
+  font-size: 1.5rem !important;
+  font-weight: 300 !important;
+}
+
+.app-fab:hover {
+  background-color: #115e59 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.app-fab:active {
+  transform: scale(0.95) !important;
+}
+
+/* Mobile adjustments for FAB */
+@media (max-width: 768px) {
+  .app-fab {
+    bottom: 1rem !important;
+    right: 1rem !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    font-size: 1.25rem !important;
+  }
+}

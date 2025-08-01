@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/GrocInv/',
   plugins: [
     react(),
     VitePWA({
@@ -20,8 +21,8 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        scope: '/GrocInv/',
+        start_url: '/GrocInv/',
         icons: [
           {
             src: 'pwa-192x192.png',

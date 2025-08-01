@@ -5,6 +5,34 @@ body,
   font-family: "Clash Grotesk", ui-sans-serif, system-ui, sans-serif !important;
 }
 
+/* Prevent zoom and pinch gestures */
+html {
+  touch-action: manipulation !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-text-size-adjust: none !important;
+}
+
+body {
+  touch-action: manipulation !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-text-size-adjust: none !important;
+  overscroll-behavior: none !important;
+}
+
+/* Allow text selection for input fields and editable content */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+  touch-action: manipulation !important;
+}
+
 /* Custom styles to force the layout to match the target design */
 .app-container {
   background-color: #f3f4f6;

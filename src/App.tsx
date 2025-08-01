@@ -23,6 +23,172 @@ import {
 // import { MdEmail, MdPhone } from 'react-icons/md';
 // import { IoMdSettings } from 'react-icons/io';
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
+// PWA Installer Component
+const PWAInstaller: React.FC = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // Check if user is on iOS
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    setIsIOS(iOS);
+
+    // Check if app is already installed (standalone mode)
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                     (window.navigator as any).standalone ||
+                     document.referrer.includes('android-app://');
+    setIsStandalone(standalone);
+
+    // Check if user has already dismissed the prompt recently
+    const lastDismissed = localStorage.getItem('pwa-install-dismissed');
+    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+    
+    if (lastDismissed && parseInt(lastDismissed) > oneDayAgo) {
+      return; // Don't show if dismissed within last 24 hours
+    }
+
+    // Listen for the beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      
+      // Show our custom install prompt after a short delay
+      setTimeout(() => {
+        if (!standalone) {
+          setShowInstallPrompt(true);
+        }
+      }, 2000); // Show after 2 seconds
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // For iOS, show prompt if not in standalone mode
+    if (iOS && !standalone) {
+      setTimeout(() => {
+        setShowInstallPrompt(true);
+      }, 2000);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      // For Android/Chrome
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+      setShowInstallPrompt(false);
+    } else if (isIOS) {
+      // For iOS, we can't trigger install programmatically
+      // The prompt will show instructions
+      return;
+    }
+  };
+
+  const handleDismiss = () => {
+    setShowInstallPrompt(false);
+    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+  };
+
+  if (!showInstallPrompt || isStandalone) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+        <button
+          onClick={handleDismiss}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X size={20} />
+        </button>
+        
+        <div className="text-center">
+          <div className="w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-white font-bold text-xl">G</span>
+          </div>
+          
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Install Gulu Inventory
+          </h3>
+          
+          <p className="text-gray-600 mb-6">
+            Get quick access to your grocery lists. Install our app for a better experience!
+          </p>
+          
+          {isIOS ? (
+            <div className="text-left mb-6">
+              <p className="text-sm text-gray-700 mb-3">To install this app on your iPhone:</p>
+              <ol className="text-sm text-gray-600 space-y-2">
+                <li className="flex items-start">
+                  <span className="font-medium mr-2">1.</span>
+                  <span>Tap the <strong>Share</strong> button at the bottom of Safari</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-medium mr-2">2.</span>
+                  <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-medium mr-2">3.</span>
+                  <span>Tap <strong>"Add"</strong> to confirm</span>
+                </li>
+              </ol>
+            </div>
+          ) : (
+            <div className="flex gap-3">
+              <button
+                onClick={handleInstallClick}
+                className="flex-1 bg-teal-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Download size={18} />
+                Install App
+              </button>
+            </div>
+          )}
+          
+          {!isIOS && (
+            <div className="flex gap-3 mt-3">
+              <button
+                onClick={handleDismiss}
+                className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+              >
+                Maybe Later
+              </button>
+            </div>
+          )}
+          
+          {isIOS && (
+            <button
+              onClick={handleDismiss}
+              className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors mt-3"
+            >
+              Got it!
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface Product {
   id: string;
   name: string;
@@ -206,14 +372,12 @@ export default function GuluInventoryApp() {
   // PWA states
   const [_isOffline, setIsOffline] = useState(false);
   const [showOfflineNotice, setShowOfflineNotice] = useState(false);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     localStorage.setItem("gulu-lists", JSON.stringify(lists));
   }, [lists]);
 
-  // PWA initialization
+  // PWA initialization (offline detection only)
   useEffect(() => {
     // Simple offline detection
     const handleOnline = () => {
@@ -235,60 +399,12 @@ export default function GuluInventoryApp() {
       window.addEventListener("online", handleOnline);
       window.addEventListener("offline", handleOffline);
 
-      // Listen for PWA install prompt
-      const handleBeforeInstallPrompt = (e: Event) => {
-        e.preventDefault();
-        setDeferredPrompt(e);
-        setShowInstallPrompt(true);
-      };
-
-      // Listen for app installed event
-      const handleAppInstalled = () => {
-        setShowInstallPrompt(false);
-        setDeferredPrompt(null);
-      };
-
-      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.addEventListener("appinstalled", handleAppInstalled);
-
       return () => {
         window.removeEventListener("online", handleOnline);
         window.removeEventListener("offline", handleOffline);
-        window.removeEventListener(
-          "beforeinstallprompt",
-          handleBeforeInstallPrompt
-        );
-        window.removeEventListener("appinstalled", handleAppInstalled);
       };
     }
   }, []);
-
-  // PWA Install Functions
-  const handleInstallApp = async () => {
-    if (!deferredPrompt) return;
-
-    try {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-
-      if (outcome === "accepted") {
-        console.log("User accepted the install prompt");
-      } else {
-        console.log("User dismissed the install prompt");
-      }
-
-      setDeferredPrompt(null);
-      setShowInstallPrompt(false);
-    } catch (error) {
-      console.error("Error during installation:", error);
-      setShowInstallPrompt(false);
-    }
-  };
-
-  const handleDismissInstall = () => {
-    setShowInstallPrompt(false);
-    setDeferredPrompt(null);
-  };
 
   const selectedList = lists.find((list) => list.id === selectedListId) || null;
 
@@ -1224,46 +1340,7 @@ export default function GuluInventoryApp() {
       )}
 
       {/* PWA Install Prompt */}
-      {showInstallPrompt && (
-        <div className="fixed bottom-4 left-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 max-w-sm mx-auto">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">G</span>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">
-                  Install Gulu Inventory
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Add to your home screen for quick access
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleDismissInstall}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={handleInstallApp}
-              className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Install
-            </button>
-            <button
-              onClick={handleDismissInstall}
-              className="flex-1 border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Not now
-            </button>
-          </div>
-        </div>
-      )}
+      <PWAInstaller />
 
       {/* Header */}
       <header className="app-header bg-white border-b border-gray-200">

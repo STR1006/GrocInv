@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import QrScanner from "qr-scanner";
+import * as QRCode from "qrcode";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   ArrowLeft,
-  Check,
   ChevronDown,
   ChevronUp,
-  Copy,
   Download,
   Minus,
   Plus,
@@ -14,7 +14,6 @@ import {
   Share2,
   ShoppingCart,
   Trash2,
-  Upload,
   X,
 } from "lucide-react";
 
@@ -26,7 +25,7 @@ import {
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
+    outcome: "accepted" | "dismissed";
     platform: string;
   }>;
   prompt(): Promise<void>;
@@ -34,7 +33,8 @@ interface BeforeInstallPromptEvent extends Event {
 
 // PWA Installer Component
 const PWAInstaller: React.FC = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -45,15 +45,16 @@ const PWAInstaller: React.FC = () => {
     setIsIOS(iOS);
 
     // Check if app is already installed (standalone mode)
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                     (window.navigator as any).standalone ||
-                     document.referrer.includes('android-app://');
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone ||
+      document.referrer.includes("android-app://");
     setIsStandalone(standalone);
 
     // Check if user has already dismissed the prompt recently
-    const lastDismissed = localStorage.getItem('pwa-install-dismissed');
-    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-    
+    const lastDismissed = localStorage.getItem("pwa-install-dismissed");
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+
     if (lastDismissed && parseInt(lastDismissed) > oneDayAgo) {
       return; // Don't show if dismissed within last 24 hours
     }
@@ -62,7 +63,7 @@ const PWAInstaller: React.FC = () => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
+
       // Show our custom install prompt after a short delay
       setTimeout(() => {
         if (!standalone) {
@@ -71,7 +72,7 @@ const PWAInstaller: React.FC = () => {
       }, 2000); // Show after 2 seconds
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     // For iOS, show prompt if not in standalone mode
     if (iOS && !standalone) {
@@ -81,7 +82,10 @@ const PWAInstaller: React.FC = () => {
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
     };
   }, []);
 
@@ -90,8 +94,8 @@ const PWAInstaller: React.FC = () => {
       // For Android/Chrome
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
+
+      if (outcome === "accepted") {
         setDeferredPrompt(null);
       }
       setShowInstallPrompt(false);
@@ -104,7 +108,7 @@ const PWAInstaller: React.FC = () => {
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    localStorage.setItem("pwa-install-dismissed", Date.now().toString());
   };
 
   if (!showInstallPrompt || isStandalone) {
@@ -112,7 +116,7 @@ const PWAInstaller: React.FC = () => {
   }
 
   return (
-    <div 
+    <div
       className="modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -133,31 +137,41 @@ const PWAInstaller: React.FC = () => {
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div className="text-center">
           <div className="w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-xl">G</span>
           </div>
-          
+
           <p className="text-gray-600 mb-6">
-            Get quick access to your grocery lists. Install our app for a better experience!
+            Get quick access to your grocery lists. Install our app for a better
+            experience!
           </p>
-          
+
           {isIOS ? (
             <div className="text-left mb-6">
-              <p className="text-sm text-gray-700 mb-3">To install this app on your iPhone:</p>
+              <p className="text-sm text-gray-700 mb-3">
+                To install this app on your iPhone:
+              </p>
               <ol className="text-sm text-gray-600 space-y-2">
                 <li className="flex items-start">
                   <span className="font-medium mr-2">1.</span>
-                  <span>Tap the <strong>Share</strong> button at the bottom of Safari</span>
+                  <span>
+                    Tap the <strong>Share</strong> button at the bottom of
+                    Safari
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <span className="font-medium mr-2">2.</span>
-                  <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                  <span>
+                    Scroll down and tap <strong>"Add to Home Screen"</strong>
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <span className="font-medium mr-2">3.</span>
-                  <span>Tap <strong>"Add"</strong> to confirm</span>
+                  <span>
+                    Tap <strong>"Add"</strong> to confirm
+                  </span>
                 </li>
               </ol>
             </div>
@@ -165,18 +179,18 @@ const PWAInstaller: React.FC = () => {
             <div className="flex gap-3 mb-3">
               <button
                 onClick={handleInstallClick}
-                className="flex-1 bg-teal-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-teal-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 text-sm"
               >
-                <Download size={18} />
+                <Download size={16} />
                 Install App
               </button>
             </div>
           )}
-          
+
           <div className="flex gap-3">
             <button
               onClick={handleDismiss}
-              className="flex-1 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              className="flex-1 border border-gray-300 text-gray-700 px-3 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
             >
               {isIOS ? "Got it!" : "Maybe Later"}
             </button>
@@ -208,6 +222,154 @@ interface RestockList {
   products: Product[];
   source?: string; // "Manual Entry" or "Imported from Code" or "Imported from CSV"
 }
+
+// QR Scanner Modal Component
+interface QrScannerModalProps {
+  onQrCodeDetected: (code: string) => void;
+  onClose: () => void;
+}
+
+const QrScannerModal: React.FC<QrScannerModalProps> = ({
+  onQrCodeDetected,
+  onClose,
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [error, setError] = useState<string>("");
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const scannerRef = useRef<QrScanner | null>(null);
+
+  useEffect(() => {
+    const startScanner = async () => {
+      if (!videoRef.current) return;
+
+      try {
+        setIsScanning(true);
+        setError("");
+
+        // Create QR Scanner instance
+        const qrScanner = new QrScanner(
+          videoRef.current,
+          (result) => {
+            if (result?.data) {
+              onQrCodeDetected(result.data);
+              cleanup();
+            }
+          },
+          {
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            returnDetailedScanResult: true,
+          }
+        );
+
+        scannerRef.current = qrScanner;
+
+        // Start scanning
+        await qrScanner.start();
+      } catch (error) {
+        console.error("Failed to start QR scanner:", error);
+        setError(
+          "Unable to access camera. Please check permissions and try again."
+        );
+        setIsScanning(false);
+      }
+    };
+
+    const cleanup = () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop();
+        scannerRef.current.destroy();
+        scannerRef.current = null;
+      }
+      setIsScanning(false);
+    };
+
+    startScanner();
+
+    // Cleanup on unmount
+    return cleanup;
+  }, [onQrCodeDetected]);
+
+  const handleClose = () => {
+    if (scannerRef.current) {
+      scannerRef.current.stop();
+      scannerRef.current.destroy();
+      scannerRef.current = null;
+    }
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">Scan QR Code</h2>
+          <button
+            onClick={handleClose}
+            className="close-button p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {error ? (
+            <div className="text-center py-8">
+              <div className="text-red-500 mb-4">
+                <div className="text-6xl opacity-50 mb-2">📷</div>
+                <p className="text-sm">{error}</p>
+              </div>
+              <button
+                onClick={handleClose}
+                className="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+              >
+                Close
+              </button>
+            </div>
+          ) : (
+            <>
+              <div
+                className="relative bg-black rounded-lg overflow-hidden"
+                style={{ aspectRatio: "4/3" }}
+              >
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  playsInline
+                  muted
+                />
+                {isScanning && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="border-2 border-white border-dashed rounded-lg w-48 h-48 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
+                        Point camera at QR code
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-center text-gray-600 text-sm">
+                Position the QR code within the camera view to scan
+                automatically.
+              </p>
+
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={handleClose}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function GuluInventoryApp() {
   const [lists, setLists] = useState<RestockList[]>(() => {
@@ -354,6 +516,8 @@ export default function GuluInventoryApp() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importError, setImportError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+  const [showQrScanner, setShowQrScanner] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [newListDescription, setNewListDescription] = useState("");
   const [newProductName, setNewProductName] = useState("");
@@ -366,6 +530,8 @@ export default function GuluInventoryApp() {
     comment: "",
     category: "",
   });
+  const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
+  const [tempQuantity, setTempQuantity] = useState("");
 
   // PWA states
   const [_isOffline, setIsOffline] = useState(false);
@@ -457,42 +623,65 @@ export default function GuluInventoryApp() {
   }, [lists, searchQuery, sortBy, sortOrder]);
 
   const generateShareCode = (list: RestockList) => {
+    // Create a very compact representation for QR codes
     const shareData = {
-      n: list.name,
-      d: list.description,
-      p: list.products.map((p) => ({
-        n: p.name,
-        q: p.quantity,
-        c: p.comment || "",
-        i: p.imageUrl || "",
-        cat: p.category || "",
-      })),
+      n: list.name.substring(0, 50), // Limit name length
+      d: list.description.substring(0, 100), // Limit description length
+      p: list.products.slice(0, 20).map((p) => {
+        // Limit to 20 products max
+        const product: any = {
+          n: p.name.substring(0, 30), // Limit product name length
+        };
+
+        // Only include non-default values to save space
+        if (p.quantity > 0) product.q = p.quantity;
+        if (p.comment && p.comment.trim())
+          product.c = p.comment.substring(0, 50);
+        if (p.category && p.category.trim())
+          product.cat = p.category.substring(0, 20);
+        // Skip image URLs for QR codes as they're too long
+
+        return product;
+      }),
     };
-    const encoded = btoa(JSON.stringify(shareData));
+
+    // Create final data object without empty description
+    const finalData: any = { n: shareData.n, p: shareData.p };
+    if (shareData.d && shareData.d.trim()) {
+      finalData.d = shareData.d;
+    }
+
+    const encoded = btoa(JSON.stringify(finalData));
     return encoded;
   };
 
   const decodeShareCode = (code: string): RestockList | null => {
     try {
       const decoded = JSON.parse(atob(code));
+
+      // Handle both full format and minimal fallback format
+      const products = (decoded.p || []).map((p: any, index: number) => ({
+        id: `${Date.now()}-${index}`,
+        name: p.n || "Unnamed Product",
+        quantity: p.q || 0,
+        isCompleted: false,
+        isOutOfStock: false,
+        imageUrl: undefined, // QR codes don't include image URLs
+        comment: p.c || undefined,
+        category: p.cat || undefined,
+      }));
+
       return {
         id: Date.now().toString(),
         name: decoded.n || "Imported List",
-        description: decoded.d || "",
+        description:
+          decoded.d || `Imported ${products.length} items from QR code`,
         createdAt: new Date(),
         source: "Imported from Code",
-        products: (decoded.p || []).map((p: any, index: number) => ({
-          id: `${Date.now()}-${index}`,
-          name: p.n || "Unnamed Product",
-          quantity: p.q || 0,
-          isCompleted: false,
-          isOutOfStock: false,
-          imageUrl: p.i || "",
-          comment: p.c || "",
-          category: p.cat || "",
-        })),
+        products,
       };
     } catch (error) {
+      console.error("Failed to decode share code:", error);
       return null;
     }
   };
@@ -602,6 +791,58 @@ export default function GuluInventoryApp() {
   const shareList = (list: RestockList) => {
     const code = generateShareCode(list);
     setShareCode(code);
+
+    // Generate QR code with error correction and fallback
+    QRCode.toDataURL(code, {
+      width: 256,
+      margin: 2,
+      errorCorrectionLevel: "L", // Low error correction for more data capacity
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    })
+      .then((url: string) => {
+        setQrCodeDataUrl(url);
+      })
+      .catch((err: Error) => {
+        console.warn("QR code too large, trying smaller format:", err);
+
+        // Fallback: Create an even more compact version
+        const minimalData = {
+          n: list.name.substring(0, 20),
+          p: list.products.slice(0, 10).map((p) => ({
+            n: p.name.substring(0, 15),
+            ...(p.quantity > 0 && { q: p.quantity }),
+          })),
+        };
+
+        const minimalCode = btoa(JSON.stringify(minimalData));
+
+        // Try again with minimal data
+        QRCode.toDataURL(minimalCode, {
+          width: 256,
+          margin: 2,
+          errorCorrectionLevel: "L",
+          color: {
+            dark: "#000000",
+            light: "#FFFFFF",
+          },
+        })
+          .then((url: string) => {
+            setQrCodeDataUrl(url);
+            // Update the share code to the minimal version that worked
+            setShareCode(minimalCode);
+          })
+          .catch((finalErr: Error) => {
+            console.error(
+              "QR code generation failed even with minimal data:",
+              finalErr
+            );
+            setQrCodeDataUrl(""); // No QR code available
+          });
+      });
+
     setShowShareModal(true);
   };
 
@@ -621,6 +862,43 @@ export default function GuluInventoryApp() {
       setImportError(
         "Invalid share code. Please check the code and try again."
       );
+    }
+  };
+
+  const startQrScanner = async () => {
+    try {
+      // Check if the browser supports camera access
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setImportError("Camera access not supported in this browser");
+        return;
+      }
+
+      setShowQrScanner(true);
+      setImportError("");
+    } catch (error) {
+      setImportError("Unable to access camera. Please check permissions.");
+      console.error("Camera access error:", error);
+    }
+  };
+
+  const stopQrScanner = () => {
+    setShowQrScanner(false);
+  };
+
+  const handleQrCodeDetected = (code: string) => {
+    setImportCode(code);
+    setShowQrScanner(false);
+    setImportError("");
+
+    // Auto-import if the code is valid
+    const importedList = decodeShareCode(code.trim());
+    if (importedList) {
+      setLists([...lists, importedList]);
+      setShowImportModal(false);
+      setImportCode("");
+      setSelectedListId(importedList.id);
+    } else {
+      setImportError("Invalid QR code. Please try again.");
     }
   };
 
@@ -677,6 +955,47 @@ export default function GuluInventoryApp() {
     setLists(
       lists.map((list) => (list.id === selectedList.id ? updatedList : list))
     );
+  };
+
+  const setProductQuantity = (productId: string, quantity: number) => {
+    if (!selectedList) return;
+    const updatedList = {
+      ...selectedList,
+      products: selectedList.products.map((p) =>
+        p.id === productId ? { ...p, quantity: Math.max(0, quantity) } : p
+      ),
+    };
+    setLists(
+      lists.map((list) => (list.id === selectedList.id ? updatedList : list))
+    );
+  };
+
+  const startEditingQuantity = (productId: string, currentQuantity: number) => {
+    setEditingQuantity(productId);
+    setTempQuantity(currentQuantity.toString());
+  };
+
+  const saveQuantityEdit = (productId: string) => {
+    const newQuantity = parseInt(tempQuantity) || 0;
+    setProductQuantity(productId, newQuantity);
+    setEditingQuantity(null);
+    setTempQuantity("");
+  };
+
+  const cancelQuantityEdit = () => {
+    setEditingQuantity(null);
+    setTempQuantity("");
+  };
+
+  const handleQuantityKeyPress = (
+    e: React.KeyboardEvent,
+    productId: string
+  ) => {
+    if (e.key === "Enter") {
+      saveQuantityEdit(productId);
+    } else if (e.key === "Escape") {
+      cancelQuantityEdit();
+    }
   };
 
   const toggleProductCompletion = (productId: string) => {
@@ -868,16 +1187,17 @@ export default function GuluInventoryApp() {
             <div className="flex items-center justify-between w-full">
               <button
                 onClick={() => setSelectedListId(null)}
-                className="app-header-btn"
+                className="app-header-btn text-gray-700 hover:text-gray-900"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3.5 h-3.5 text-gray-700" />
                 <span>Back to Lists</span>
               </button>
               <button
                 onClick={resetAllProducts}
-                className="app-header-btn danger"
+                className="app-header-btn danger text-red-600 hover:text-red-700"
               >
-                Reset All
+                <span>Reset All</span>
+                <RotateCcw className="w-3.5 h-3.5 text-red-600" />
               </button>
             </div>
           </div>
@@ -887,18 +1207,13 @@ export default function GuluInventoryApp() {
         <main className="app-main max-w-4xl mx-auto px-6 py-8">
           {/* Title Section */}
           <div className="mb-6 w-full">
-            <div className="flex items-center justify-between mb-4 w-full">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-                  {selectedList.name}
-                </h1>
-                <p className="text-gray-600 text-sm mb-1">
-                  {selectedList.description}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  {completedCount} of {totalCount} items completed
-                </p>
-              </div>
+            <div className="w-full">
+              <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+                {selectedList.name}
+              </h1>
+              <p className="text-gray-500 text-sm">
+                {completedCount} of {totalCount} items completed
+              </p>
             </div>
           </div>
 
@@ -920,10 +1235,36 @@ export default function GuluInventoryApp() {
 
           {/* Sort and Filter Controls */}
           <div className="mb-6 w-full">
-            <div className="flex items-center justify-end gap-4">
-              <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center justify-between gap-4">
+              {/* Left side - Category Filter */}
+              <div className="flex items-center gap-6">
+                {availableCategories.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 text-sm whitespace-nowrap">
+                      Filter
+                    </span>
+                    <select
+                      id="categoryFilter"
+                      name="categoryFilter"
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="bg-gray-50 border-0 rounded-lg px-3 py-2 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200"
+                    >
+                      <option value="">All Categories</option>
+                      {availableCategories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Right side - Sort Controls */}
+              <div className="flex items-center gap-2">
                 <span className="text-gray-600 text-sm whitespace-nowrap">
-                  Sort:
+                  Sort
                 </span>
                 <select
                   id="productSortBy"
@@ -953,18 +1294,14 @@ export default function GuluInventoryApp() {
                       productSortOrder === "asc" ? "desc" : "asc"
                     )
                   }
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-gray-800"
                 >
                   {productSortOrder === "asc" ? (
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="w-4 h-4 text-gray-600" />
                   ) : (
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-4 h-4 text-gray-600" />
                   )}
                 </button>
-              </div>
-              <div className="text-sm text-gray-500 flex-shrink-0 whitespace-nowrap">
-                {filteredProducts.length} product
-                {filteredProducts.length !== 1 ? "s" : ""}
               </div>
             </div>
           </div>
@@ -995,7 +1332,7 @@ export default function GuluInventoryApp() {
                         : "Mark as Out of Stock"
                     }
                   >
-                    <ShoppingCart className="w-4 h-4" />
+                    <ShoppingCart className="w-3.5 h-3.5 text-gray-700" />
                   </button>
 
                   {/* Product Name - Centered between icons */}
@@ -1012,7 +1349,7 @@ export default function GuluInventoryApp() {
                     }}
                     className="icon-button"
                   >
-                    <RotateCcw className="w-4 h-4" />
+                    <RotateCcw className="w-3.5 h-3.5 text-gray-700" />
                   </button>
                 </div>
 
@@ -1041,10 +1378,33 @@ export default function GuluInventoryApp() {
                       }}
                       className="quantity-button"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-3.5 h-3.5 text-gray-700" />
                     </button>
 
-                    <span className="quantity-display">{product.quantity}</span>
+                    {editingQuantity === product.id ? (
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={tempQuantity}
+                        onChange={(e) => setTempQuantity(e.target.value)}
+                        onBlur={() => saveQuantityEdit(product.id)}
+                        onKeyDown={(e) => handleQuantityKeyPress(e, product.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="quantity-input"
+                        autoFocus
+                        min="0"
+                      />
+                    ) : (
+                      <span
+                        className="quantity-display clickable"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditingQuantity(product.id, product.quantity);
+                        }}
+                      >
+                        {product.quantity}
+                      </span>
+                    )}
 
                     <button
                       onClick={(e) => {
@@ -1053,7 +1413,7 @@ export default function GuluInventoryApp() {
                       }}
                       className="quantity-button"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5 text-gray-700" />
                     </button>
                   </div>
                 </div>
@@ -1101,7 +1461,7 @@ export default function GuluInventoryApp() {
           className="app-fab"
           title="Add Product"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5 text-white" />
         </button>
 
         {/* Add Product Modal */}
@@ -1187,7 +1547,7 @@ export default function GuluInventoryApp() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={addProduct}
-                    className="primary flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                    className="primary flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm"
                     disabled={!newProductName.trim()}
                   >
                     Add Product
@@ -1200,7 +1560,7 @@ export default function GuluInventoryApp() {
                       setNewProductComment("");
                       setNewProductCategory("");
                     }}
-                    className="secondary px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    className="secondary px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
                   >
                     Cancel
                   </button>
@@ -1224,7 +1584,7 @@ export default function GuluInventoryApp() {
                   className="close-button p-2 rounded-full hover:bg-gray-100 transition-colors"
                   aria-label="Close"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
               <div className="space-y-4">
@@ -1307,15 +1667,15 @@ export default function GuluInventoryApp() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={saveProductEdit}
-                    className="primary flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                    className="primary flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm"
                   >
                     Save Changes
                   </button>
                   <button
                     onClick={deleteProductFromEdit}
-                    className="danger px-4 py-3 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
+                    className="danger px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium text-sm"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5 text-red-600" />
                   </button>
                 </div>
               </div>
@@ -1363,47 +1723,51 @@ export default function GuluInventoryApp() {
       <main className="app-main max-w-4xl mx-auto px-6 py-8">
         {/* Action Buttons */}
         <div className="app-action-buttons flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3 mb-6 w-full">
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setShowImportModal(true)}
-              className="app-import-btn"
-            >
-              <Download className="w-4 h-4" />
-              Import from Code
-            </button>
-            <button
-              onClick={() => setShowCsvImportModal(true)}
-              className="app-import-btn"
-            >
-              <Upload className="w-4 h-4" />
-              Import from CSV
-            </button>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-gray-600 text-sm font-medium">Sort:</span>
-            <select
-              id="sortBy"
-              name="sortBy"
-              value={sortBy}
-              onChange={(e) =>
-                setSortBy(e.target.value as "name" | "date" | "quantity")
-              }
-              className="text-gray-700 bg-gray-50 border-0 rounded-lg px-3 py-2 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200"
-            >
-              <option value="date">Date</option>
-              <option value="name">Name</option>
-              <option value="quantity">Items</option>
-            </select>
-            <button
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="p-2 text-gray-500 hover:text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              {sortOrder === "asc" ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="app-import-btn"
+              >
+                <Download className="w-4 h-4 text-gray-700" />
+                Code
+              </button>
+              <button
+                onClick={() => setShowCsvImportModal(true)}
+                className="app-import-btn"
+              >
+                <Download className="w-4 h-4 text-gray-700" />
+                CSV
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 text-sm font-medium">Sort:</span>
+              <select
+                id="sortBy"
+                name="sortBy"
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(e.target.value as "name" | "date" | "quantity")
+                }
+                className="text-gray-700 bg-gray-50 border-0 rounded-lg px-3 py-2 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-gray-200"
+              >
+                <option value="date">Date</option>
+                <option value="name">Name</option>
+                <option value="quantity">Items</option>
+              </select>
+              <button
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                className="p-2 text-gray-500 hover:text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                {sortOrder === "asc" ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1439,7 +1803,7 @@ export default function GuluInventoryApp() {
                 className="app-list-card bg-white border border-gray-300 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => {
                   // Update lastViewedAt when clicking on a list
-                  const updatedLists = lists.map(l => 
+                  const updatedLists = lists.map((l) =>
                     l.id === list.id ? { ...l, lastViewedAt: new Date() } : l
                   );
                   setLists(updatedLists);
@@ -1454,8 +1818,8 @@ export default function GuluInventoryApp() {
                 }}
               >
                 <div className="app-list-header flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="app-list-title">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="app-list-title text-lg font-semibold text-gray-900 truncate">
                       {list.name || "Test Title"}
                     </h3>
                   </div>
@@ -1470,7 +1834,7 @@ export default function GuluInventoryApp() {
                         className="app-action-btn p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Share list"
                       >
-                        <Share2 className="w-4 h-4" />
+                        <Share2 className="w-4 h-4 text-gray-500" />
                       </button>
                       <button
                         onClick={(e) => {
@@ -1480,22 +1844,27 @@ export default function GuluInventoryApp() {
                         className="app-action-btn p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Delete list"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
                       </button>
                     </div>
                     <span className="app-list-date text-sm text-gray-500 font-medium">
-                      {list.lastViewedAt 
-                        ? `Last viewed ${list.lastViewedAt.toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                          })}`
-                        : `Created ${list.createdAt.toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                          })}`
-                      }
+                      {list.lastViewedAt
+                        ? `Last viewed ${list.lastViewedAt.toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}`
+                        : `Created ${list.createdAt.toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}`}
                     </span>
                   </div>
                 </div>
@@ -1555,7 +1924,7 @@ export default function GuluInventoryApp() {
                 className="close-button p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                 aria-label="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <div className="space-y-4">
@@ -1646,26 +2015,37 @@ export default function GuluInventoryApp() {
                 className="close-button p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                 aria-label="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <p className="text-gray-600 mb-4">
-              Paste a share code to import a list shared by someone else.
+              Paste a share code or scan a QR code to import a list shared by
+              someone else.
             </p>
             <div className="space-y-4">
-              <input
-                type="text"
-                id="importCode"
-                name="importCode"
-                value={importCode}
-                onChange={(e) => {
-                  setImportCode(e.target.value);
-                  setImportError(""); // Clear error when user types
-                }}
-                placeholder="Paste share code here..."
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                autoFocus
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  id="importCode"
+                  name="importCode"
+                  value={importCode}
+                  onChange={(e) => {
+                    setImportCode(e.target.value);
+                    setImportError(""); // Clear error when user types
+                  }}
+                  placeholder="Paste share code here..."
+                  className="flex-1 px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                  autoFocus
+                />
+                <button
+                  onClick={startQrScanner}
+                  className="flex-shrink-0 px-3 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center"
+                  title="Scan QR code"
+                  style={{ minWidth: "48px", minHeight: "48px" }}
+                >
+                  📷
+                </button>
+              </div>
               {importError && (
                 <p className="text-red-500 text-sm">{importError}</p>
               )}
@@ -1693,6 +2073,14 @@ export default function GuluInventoryApp() {
         </div>
       )}
 
+      {/* QR Scanner Modal */}
+      {showQrScanner && (
+        <QrScannerModal
+          onQrCodeDetected={handleQrCodeDetected}
+          onClose={stopQrScanner}
+        />
+      )}
+
       {/* Share Code Modal */}
       {showShareModal && (
         <div className="modal-overlay">
@@ -1704,34 +2092,59 @@ export default function GuluInventoryApp() {
                 className="close-button p-2 rounded-full hover:bg-gray-100 transition-colors"
                 aria-label="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <p className="text-gray-600 mb-4">
               Copy and share this code with others to import your list.
             </p>
             <div className="space-y-4">
-              <div className="relative">
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
                   id="shareCode"
                   name="shareCode"
                   readOnly
                   value={shareCode}
-                  className="w-full px-3 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none"
+                  className="flex-1 px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none"
                 />
                 <button
                   onClick={() => copyToClipboard(shareCode)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-slate-700 transition-colors rounded-lg hover:bg-gray-100"
+                  className="px-3 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
                   title="Copy to clipboard"
                 >
-                  {copied ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
+                  {copied ? "✅" : "📋"}
                 </button>
               </div>
+              {qrCodeDataUrl ? (
+                <div className="flex justify-center mt-6">
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <img
+                      src={qrCodeDataUrl}
+                      alt="QR Code for share code"
+                      className="w-64 h-64 mx-auto"
+                    />
+                    <p className="text-center text-sm text-gray-500 mt-3">
+                      Scan to import list
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-center mt-6">
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <div className="w-64 h-64 flex items-center justify-center bg-gray-100 rounded mx-auto">
+                      <p className="text-gray-500 text-sm text-center px-4">
+                        QR code unavailable
+                        <br />
+                        (List too large)
+                      </p>
+                    </div>
+                    <p className="text-center text-sm text-gray-500 mt-3">
+                      Use the text code above instead
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex justify-end mt-6">
               <button
@@ -1761,7 +2174,7 @@ export default function GuluInventoryApp() {
                 className="close-button p-2 rounded-full hover:bg-gray-100 transition-colors"
                 aria-label="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <p className="text-gray-600 mb-4">

@@ -74,10 +74,10 @@ textarea,
 .app-new-list-btn {
   background-color: #0f766e !important;
   color: white !important;
-  padding: 0.5rem 1rem !important;
-  border-radius: 0.5rem !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 0.375rem !important;
   border: none !important;
-  font-size: 0.875rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 500 !important;
   cursor: pointer !important;
   transition: background-color 0.2s !important;
@@ -96,10 +96,10 @@ textarea,
 .app-header-btn {
   background-color: #0f766e !important;
   color: white !important;
-  padding: 0.375rem 0.75rem !important;
+  padding: 0.5rem 0.75rem !important;
   border-radius: 0.375rem !important;
   border: none !important;
-  font-size: 0.75rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 500 !important;
   cursor: pointer !important;
   transition: background-color 0.2s !important;
@@ -187,12 +187,12 @@ textarea,
 .app-import-btn {
   display: flex !important;
   align-items: center !important;
-  gap: 0.5rem !important;
+  gap: 0.375rem !important;
   background-color: white !important;
   border: 1px solid #d1d5db !important;
-  padding: 0.5rem 1rem !important;
-  border-radius: 0.5rem !important;
-  font-size: 0.875rem !important;
+  padding: 0.375rem 0.75rem !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 500 !important;
   color: #374151 !important;
   cursor: pointer !important;
@@ -306,6 +306,16 @@ textarea,
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* More specific selector to ensure title single line */
+.app-list-header .flex-1 .app-list-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
 }
 
 .app-list-actions {
@@ -441,7 +451,7 @@ textarea,
 
 .app-product-card .icon-button:hover {
   color: #374151;
-  background-color: #f3f4f6;
+  background-color: transparent;
 }
 
 .app-product-card .icon-button.out-of-stock-active {
@@ -519,11 +529,11 @@ textarea,
 }
 
 .app-product-card .quantity-button {
-  width: 3rem; /* 48px - even bigger buttons */
-  height: 3rem;
+  width: 2.5rem; /* 40px - smaller buttons */
+  height: 2.5rem;
   background-color: transparent;
   border: none;
-  border-radius: 0.5rem; /* More boxy style instead of circular */
+  border-radius: 0.375rem; /* More boxy style instead of circular */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -533,24 +543,48 @@ textarea,
 }
 
 .app-product-card .quantity-button:hover {
-  background-color: #9ca3af;
+  background-color: transparent;
 }
 
 .app-product-card .quantity-display {
-  font-size: 1.25rem; /* text-xl */
+  font-size: 1.125rem; /* text-lg */
   font-weight: 700; /* font-bold */
   color: #111827;
-  padding: 0 1.5rem;
-  min-width: 4rem;
+  padding: 0 1rem;
+  min-width: 3rem;
   text-align: center;
+}
+
+.app-product-card .quantity-display.clickable {
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.app-product-card .quantity-display.clickable:hover {
+  background-color: rgba(156, 163, 175, 0.1);
+}
+
+.app-product-card .quantity-input {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 700; /* font-bold */
+  color: #111827;
+  padding: 0 0.5rem;
+  width: 3rem;
+  min-width: 3rem;
+  text-align: center;
+  background: transparent;
+  border: 1px solid #9ca3af;
+  border-radius: 0.25rem;
+  outline: none;
 }
 
 .app-product-card .mark-done-button {
   width: 100%;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   transition: all 0.2s;
   cursor: pointer;
 }
@@ -805,8 +839,11 @@ textarea,
   font-size: 2rem !important;
   font-weight: 600 !important;
   color: #111827 !important;
-  line-height: 1.2 !important;
+  line-height: 1.3 !important;
   margin: 0 0 0.5rem 0 !important;
+  max-width: 100% !important;
+  display: block !important;
+  width: 100% !important;
 }
 
 .app-main h1 + p {
@@ -839,29 +876,6 @@ textarea,
   flex: 1 !important;
   min-width: 0 !important;
   max-width: calc(100% - 140px) !important;
-}
-
-/* Add Product button styling */
-.app-main .app-header-btn {
-  background-color: #0f766e !important;
-  color: white !important;
-  padding: 0.75rem 1.25rem !important;
-  border-radius: 0.5rem !important;
-  border: none !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: background-color 0.2s !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.5rem !important;
-  flex-shrink: 0 !important;
-  white-space: nowrap !important;
-  min-width: fit-content !important;
-}
-
-.app-main .app-header-btn:hover {
-  background-color: #115e59 !important;
 }
 
 /* Search bar styling */
@@ -947,7 +961,8 @@ textarea,
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
   transition: all 0.2s !important;
   z-index: 1000 !important;
   font-size: 1.5rem !important;
@@ -957,7 +972,8 @@ textarea,
 .app-fab:hover {
   background-color: #115e59 !important;
   transform: scale(1.05) !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
 
 .app-fab:active {

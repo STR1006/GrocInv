@@ -623,35 +623,19 @@ export default function GuluInventoryApp() {
   }, [lists, searchQuery, sortBy, sortOrder]);
 
   const generateShareCode = (list: RestockList) => {
-    // Create a very compact representation for QR codes
-    const shareData = {
-      n: list.name.substring(0, 50), // Limit name length
-      d: list.description.substring(0, 100), // Limit description length
-      p: list.products.slice(0, 20).map((p) => {
-        // Limit to 20 products max
-        const product: any = {
-          n: p.name.substring(0, 30), // Limit product name length
+    // Create a simple representation for QR codes with product names and images
+    const simpleData = {
+      n: list.name.substring(0, 20), // Shorter name limit
+      p: list.products.slice(0, 6).map((p) => {
+        // Limit to 6 products max for smaller QR codes (reduced from 8 to accommodate images)
+        return {
+          n: p.name.substring(0, 15), // Product name, truncated
+          i: p.imageUrl ? p.imageUrl.substring(0, 100) : undefined // Image URL, truncated to keep QR code size manageable
         };
-
-        // Only include non-default values to save space
-        if (p.quantity > 0) product.q = p.quantity;
-        if (p.comment && p.comment.trim())
-          product.c = p.comment.substring(0, 50);
-        if (p.category && p.category.trim())
-          product.cat = p.category.substring(0, 20);
-        // Skip image URLs for QR codes as they're too long
-
-        return product;
       }),
     };
 
-    // Create final data object without empty description
-    const finalData: any = { n: shareData.n, p: shareData.p };
-    if (shareData.d && shareData.d.trim()) {
-      finalData.d = shareData.d;
-    }
-
-    const encoded = btoa(JSON.stringify(finalData));
+    const encoded = btoa(JSON.stringify(simpleData));
     return encoded;
   };
 
@@ -659,23 +643,29 @@ export default function GuluInventoryApp() {
     try {
       const decoded = JSON.parse(atob(code));
 
-      // Handle both full format and minimal fallback format
-      const products = (decoded.p || []).map((p: any, index: number) => ({
-        id: `${Date.now()}-${index}`,
-        name: p.n || "Unnamed Product",
-        quantity: p.q || 0,
-        isCompleted: false,
-        isOutOfStock: false,
-        imageUrl: undefined, // QR codes don't include image URLs
-        comment: p.c || undefined,
-        category: p.cat || undefined,
-      }));
+      // Handle the format with product names and images
+      const products = (decoded.p || []).map((productData: any, index: number) => {
+        // Handle both old format (string) and new format (object)
+        const isOldFormat = typeof productData === 'string';
+        const productName = isOldFormat ? productData : (productData.n || "Unnamed Product");
+        const productImage = isOldFormat ? undefined : productData.i;
+
+        return {
+          id: `${Date.now()}-${index}`,
+          name: productName,
+          quantity: 0, // Always start with 0 quantity
+          isCompleted: false,
+          isOutOfStock: false,
+          imageUrl: productImage, // Include image from share code
+          comment: undefined, // No comments in simplified format
+          category: undefined, // No categories in simplified format
+        };
+      });
 
       return {
         id: Date.now().toString(),
         name: decoded.n || "Imported List",
-        description:
-          decoded.d || `Imported ${products.length} items from QR code`,
+        description: `Imported ${products.length} items from code`,
         createdAt: new Date(),
         source: "Imported from Code",
         products,
@@ -792,11 +782,11 @@ export default function GuluInventoryApp() {
     const code = generateShareCode(list);
     setShareCode(code);
 
-    // Generate QR code with error correction and fallback
+    // Generate QR code with optimized settings for data with images
     QRCode.toDataURL(code, {
-      width: 256,
-      margin: 2,
-      errorCorrectionLevel: "L", // Low error correction for more data capacity
+      width: 250, // Slightly larger QR code to accommodate more data
+      margin: 1, // Minimal margin
+      errorCorrectionLevel: "L", // Low error correction for maximum data capacity
       color: {
         dark: "#000000",
         light: "#FFFFFF",
@@ -806,47 +796,12 @@ export default function GuluInventoryApp() {
         setQrCodeDataUrl(url);
       })
       .catch((err: Error) => {
-        console.warn("QR code too large, trying smaller format:", err);
-
-        // Fallback: Create an even more compact version
-        const minimalData = {
-          n: list.name.substring(0, 20),
-          p: list.products.slice(0, 10).map((p) => ({
-            n: p.name.substring(0, 15),
-            ...(p.quantity > 0 && { q: p.quantity }),
-          })),
-        };
-
-        const minimalCode = btoa(JSON.stringify(minimalData));
-
-        // Try again with minimal data
-        QRCode.toDataURL(minimalCode, {
-          width: 256,
-          margin: 2,
-          errorCorrectionLevel: "L",
-          color: {
-            dark: "#000000",
-            light: "#FFFFFF",
-          },
-        })
-          .then((url: string) => {
-            setQrCodeDataUrl(url);
-            // Update the share code to the minimal version that worked
-            setShareCode(minimalCode);
-          })
-          .catch((finalErr: Error) => {
-            console.error(
-              "QR code generation failed even with minimal data:",
-              finalErr
-            );
-            setQrCodeDataUrl(""); // No QR code available
-          });
+        console.warn("QR code generation failed:", err);
+        setQrCodeDataUrl(""); // No QR code available
       });
 
     setShowShareModal(true);
-  };
-
-  const importList = () => {
+  };  const importList = () => {
     if (!importCode.trim()) {
       setImportError("Please enter a share code");
       return;
@@ -1740,7 +1695,7 @@ export default function GuluInventoryApp() {
                 CSV
               </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="text-gray-600 text-sm font-medium">Sort:</span>
               <select
                 id="sortBy"
@@ -1759,12 +1714,15 @@ export default function GuluInventoryApp() {
                 onClick={() =>
                   setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                 }
-                className="p-2 text-gray-500 hover:text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+                className="flex items-center justify-center w-14 h-10 ml-3 px-3 py-2 text-gray-800 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-300 hover:border-gray-400 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                title={`Sort ${
+                  sortOrder === "asc" ? "Descending" : "Ascending"
+                }`}
               >
                 {sortOrder === "asc" ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                  <ChevronUp className="w-5 h-5" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-5 h-5" />
                 )}
               </button>
             </div>
